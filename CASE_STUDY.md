@@ -600,7 +600,7 @@ Sign up at **[app.api2trade.com](https://app.api2trade.com)**. Connect your MT5 
 
 **Cost:** €12/month per connected MT5 account.
 
-The session UUID looks like: `512d3dbf-054e-41e6-b80a-560587234f65`
+The session UUID looks like: `a1b2c3d4-e5f6-7890-abcd-ef1234567890`
 
 You also get an API username and password for Basic HTTP auth on every request.
 
@@ -608,7 +608,7 @@ You also get an API username and password for Basic HTTP auth on every request.
 
 1. Message [@BotFather](https://t.me/BotFather) on Telegram → `/newbot`
 2. Give it a name (e.g. "GENESIS Alerts")
-3. Copy the bot token: `8924879166:AAG3x_zo...`
+3. Copy the bot token: `1234567890:AABBccDDeeffGGHHiiJJkkLLmmNNoo`
 4. Message [@userinfobot](https://t.me/userinfobot) to get your numeric Chat ID
 
 ### Step 3: Clone and Configure
@@ -647,7 +647,7 @@ docker compose up -d
 docker logs -f genesis
 
 # Expected output:
-#   ✓  MT5_ACCOUNT_UUID = 512d3dbf••••
+#   ✓  MT5_ACCOUNT_UUID = a1b2c3d4••••
 #   ✓  Verifying API2TRADE connection...
 #   ✓  Connected | Balance: 10,000.00 USD [demo]
 #   ✓  6 cron jobs installed
@@ -839,7 +839,7 @@ We validated GENESIS v2.1 on a **Deriv Demo account** ($10,000 USD, 1:1000 lever
 
 **API2TRADE Session Connection:**
 ```
-ConnectEx → 200 OK → Session UUID: 512d3dbf-054e-41e6-b80a-560587234f65
+ConnectEx → 200 OK → Session UUID: a1b2c3d4-e5f6-7890-abcd-ef1234567890
 AccountSummary:
   balance: $10,000.00 USD
   equity:  $10,000.00 USD
