@@ -1,0 +1,52 @@
+# GENESIS — Hephaestus Strategy F Configuration
+# Grid + Martingale — EXTREME RISK — circuit breakers MANDATORY
+# confirm_risk_acknowledged MUST be true before strategy runs
+
+strategy:
+  name: "Hephaestus"
+  version: "1.0"
+  comment: "HEPH-v1"
+  magic_number: 20250518
+  confirm_risk_acknowledged: true   # SET TO true ONLY AFTER READING WARNING
+
+bridge:
+  url: "http://127.0.0.1:8000"
+  timeout_seconds: 15
+
+mt5_api:
+  url: "https://api.api2trade.com"
+  account_id: "YOUR_API2TRADE_ACCOUNT_UUID"
+  api_key:    "YOUR_API2TRADE_API_KEY"
+
+telegram:
+  chat_id: "YOUR_TELEGRAM_CHAT_ID"
+
+symbol: "EURUSDxx"          # Single pair only — never multi-pair for grid
+direction: "both"            # "buy_only", "sell_only", "both"
+
+grid:
+  initial_lot:              0.01   # START TINY — martingale compounds fast
+  martingale_multiplier:    1.5    # 1.5x safer than 2x. 2x will blow account in 6 levels
+  max_lot_per_order:        0.20   # Hard cap — never exceeded regardless of martingale
+  grid_spacing_pips:        20     # Distance between grid levels
+  max_grid_levels:          4      # HARD LIMIT — level 4 = 0.01 × 1.5³ = 0.034 lot
+  take_profit_pips:         15     # TP per individual trade
+  basket_tp_pips:           25     # Close all if total basket profit ≥ this
+
+circuit_breakers:
+  max_equity_drawdown_pct:  8.0    # Kill all if equity drops 8% from peak
+  max_daily_loss_pct:       4.0    # Stop for day if daily loss ≥ 4%
+  max_consecutive_losses:   4      # Reset grid after 4 consecutive losing levels
+  cooldown_after_reset_sec: 600    # 10 min cooldown before restarting grid
+  max_spread_pips:          1.5    # No new levels if spread too wide
+  max_total_lots:           0.5    # Total exposure cap across all grid levels
+
+sessions:
+  allowed:
+    - {start: 7, end: 20}  # Only trade during liquid hours
+
+journal:
+  path: "/var/log/hephaestus/trade_journal.jsonl"
+
+cache:
+  path: "/tmp/genesis_cache.json"

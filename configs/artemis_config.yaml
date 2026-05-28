@@ -1,0 +1,76 @@
+# GENESIS — Artemis Strategy E Configuration
+# Ichimoku Kumo Breakout — H1 timeframe, high-quality low-frequency signals
+# Complements: Ares (BB+RSI M1), Apollo (MA Cross M5), Athena (BB+RSI M5)
+
+bridge:
+  url: "http://127.0.0.1:8000"
+  timeout_seconds: 15
+
+mt5_api:
+  url: "https://api.api2trade.com"
+  account_id: "YOUR_API2TRADE_ACCOUNT_UUID"
+  api_key:    "YOUR_API2TRADE_API_KEY"
+
+telegram:
+  chat_id: "YOUR_TELEGRAM_CHAT_ID"
+
+symbols:
+  - "EURUSDxx"
+  - "GBPJPYxx"   # Ichimoku originated in Japan — JPY pairs are ideal
+  - "GBPUSDxx"
+  - "USDJPYxx"
+  - "XAUUSDxx"
+
+ichimoku:
+  tenkan_period:   9     # Conversion Line — short-term trend
+  kijun_period:    26    # Base Line — medium-term trend / SL reference
+  senkou_b_period: 52    # Slow cloud boundary
+  displacement:    26    # Kumo is plotted 26 bars AHEAD of price
+
+  # Signal quality gates
+  require_cloud_color_alignment: true  # Buy only if future cloud is green (SpanA > SpanB)
+  confirmation_bars: 1                  # Must close outside Kumo for N full bars
+  require_chikou_confirmation: true    # Chikou Span must be above/below price
+  require_price_above_kijun: true      # Price above Kijun for buys, below for sells
+
+confirmation:
+  use_rsi: true
+  rsi_period: 14
+  rsi_buy_threshold: 50    # RSI > 50 for buys
+  rsi_sell_threshold: 50   # RSI < 50 for sells
+
+  use_awesome_oscillator: false  # AO is optional — disabled by default (RSI is enough)
+  ao_fast: 5
+  ao_slow: 34
+
+risk:
+  risk_pct: 0.0075          # 0.75% per trade — higher quality signal justifies larger size
+  min_rr_ratio: 2.0         # H1 signals justify higher R:R requirement
+  sl_kijun_buffer: 0.0002   # SL placed just below/above Kijun-sen + buffer
+  use_kumo_sl: true         # Alternative: SL at near edge of Kumo
+  tp_multiplier: 2.5        # TP = SL distance × 2.5
+  max_spread_pips: 2.0      # H1 allows wider spread tolerance
+  block_news_minutes: 60
+  block_medium_news: false
+
+strictness:
+  cooldown_seconds: 300     # 5 min cooldown — H1 signals are rare, no need to spam
+  signal_timeframe: "H1"
+  trend_timeframe:  "D1"   # Daily trend context (optional double-check)
+
+sessions:
+  # Ichimoku works best during liquid sessions
+  allowed:
+    - {start: 7, end: 21}
+
+journal:
+  path: "/var/log/artemis/trade_journal.jsonl"
+
+cache:
+  path: "/tmp/genesis_cache.json"
+
+strategy:
+  name: "Artemis"
+  version: "1.0"
+  comment: "ARTEMIS-v1"      # Unique tag — 5th strategy
+  magic_number: 20250517

@@ -1,0 +1,52 @@
+# GENESIS — Strategy B (Ares) Configuration
+# Controls ONLY Strategy B. Strategy A (Hermes) is completely untouched.
+
+bridge:
+  url: "http://127.0.0.1:8000"   # Account A bridge (existing, port 8000)
+  timeout_seconds: 15
+
+mt5_api:
+  url: "https://api.api2trade.com"
+  account_id: "YOUR_API2TRADE_ACCOUNT_UUID"
+  api_key:    "YOUR_API2TRADE_API_KEY"
+
+telegram:
+  chat_id: "YOUR_TELEGRAM_CHAT_ID"
+
+symbols:
+  - "EURUSDxx"
+  - "XAUUSDxx"
+  - "GBPUSDxx"
+
+risk:
+  risk_pct: 0.01          # 1% risk per trade
+  max_simultaneous: 1     # Max 1 open position
+  min_rr_ratio: 1.5       # Minimum R:R
+  block_news_minutes: 60  # Block X minutes before high-impact events
+  block_medium_news: true # Also block medium-impact
+
+# BB+RSI EA pip settings (mirrors MQL5 EA inputs)
+sl_pips: 20
+tp_pips: 40
+
+strictness:
+  min_confluence_count: 3           # N conditions must align before signalling
+  required_timeframes: ["H1", "H4"] # All must agree on direction
+  min_adx: 22
+  rsi_oversold: 30
+  rsi_overbought: 70
+
+sessions:
+  allowed:
+    - {start: 7, end: 21}  # London + NY UTC hours
+
+journal:
+  path: "/var/log/ares/trade_journal.jsonl"
+
+cache:
+  path: "/tmp/genesis_cache.json"  # Shared with Hermes — zero extra API calls
+
+strategy:
+  name: "Ares"
+  version: "1.0"
+  comment: "ARES-v1"  # MT5 order comment — distinguishes from GENESIS-v2

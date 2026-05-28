@@ -1,0 +1,69 @@
+# GENESIS — Athena Strategy D Configuration
+# BB+RSI Mean Reversion on M5 — faster signals than Ares (M1 strict)
+# Complements: Ares (M1 strict), Apollo (MA Trend), Hermes (free AI)
+
+bridge:
+  url: "http://127.0.0.1:8000"
+  timeout_seconds: 15
+
+mt5_api:
+  url: "https://api.api2trade.com"
+  account_id: "YOUR_API2TRADE_ACCOUNT_UUID"
+  api_key:    "YOUR_API2TRADE_API_KEY"
+
+telegram:
+  chat_id: "YOUR_TELEGRAM_CHAT_ID"
+
+symbols:
+  - "EURUSDxx"
+  - "GBPUSDxx"
+  - "XAUUSDxx"
+  - "USDJPYxx"
+  - "GBPJPYxx"
+
+indicators:
+  bb_period: 20
+  bb_deviation: 2.0
+  bb_ma_method: "SMA"
+  rsi_period: 14
+  rsi_oversold: 30
+  rsi_overbought: 70
+  signal_timeframe: "M5"       # M5 — faster than Ares (M1), captures intraday moves
+  trend_timeframe: "H4"        # H4 context filter — broader than Ares (M15)
+  trend_ma_period: 50
+  atr_period: 14
+  volume_ma_period: 20         # Volume confirmation (OBV direction)
+
+risk:
+  risk_pct: 0.005              # 0.5% — half of Ares/Apollo (more signals, smaller size)
+  min_rr_ratio: 1.5
+  sl_atr_multiplier: 1.2       # Tighter SL than Ares (M5 ATR is smaller)
+  tp_atr_multiplier: 2.5       # TP slightly lower (M5 moves less than M1 extremes)
+  max_spread_pips: 1.5
+  block_news_minutes: 30       # Less strict than Ares (M5 recovers faster)
+  block_medium_news: false
+
+strictness:
+  # Athena is SIMPLER than Ares — only 2 hard conditions (BB + RSI)
+  # ADX is a soft bonus, not a gate — allows trading in quieter markets too
+  require_band_close: true     # Candle must CLOSE outside BB (not just wick)
+  soft_adx_bonus: true         # ADX > 18 adds confidence but doesn't block
+  require_h4_context: true     # H4 SMA50 must agree with direction
+  cooldown_seconds: 90         # 90s between signals per symbol
+  max_signals_per_hour: 4      # Rate limit — prevents overtrading on choppy M5
+
+sessions:
+  allowed:
+    - {start: 6, end: 20}    # Slightly wider than Ares
+
+journal:
+  path: "/var/log/athena/trade_journal.jsonl"
+
+cache:
+  path: "/tmp/genesis_cache.json"
+
+strategy:
+  name: "Athena"
+  version: "1.0"
+  comment: "ATHENA-v1"         # Unique tag — distinguishes from GENESIS-v2, ARES-v1, APOLLO-v1
+  magic_number: 20250516

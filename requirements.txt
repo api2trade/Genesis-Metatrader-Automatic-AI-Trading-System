@@ -1,0 +1,23 @@
+# GENESIS — Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# HTTP & API
+requests==2.31.0
+python-dotenv==1.0.0
+
+# Config
+pyyaml==6.0.1
+
+# Market data
+yfinance==0.2.36
+pandas==2.1.4
+
+# Technical indicators
+ta==0.11.0
+numpy==1.26.3
+
+# Telegram bot
+python-telegram-bot==20.7
+
+# Scheduling (used by some telegram bots)
+APScheduler==3.10.4

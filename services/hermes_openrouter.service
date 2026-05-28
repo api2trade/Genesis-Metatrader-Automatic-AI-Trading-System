@@ -1,0 +1,20 @@
+[Unit]
+Description=Hermes Agent Gateway (Telegram)
+After=network.target mt5-bridge.service
+Wants=mt5-bridge.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/hermes-agent
+TimeoutStopSec=210
+Environment="HOME=/root"
+Environment="PATH=/root/.local/bin:/opt/hermes-agent/.venv-hermes/bin:/usr/local/bin:/usr/bin:/bin"
+ExecStart=/opt/hermes-agent/.venv-hermes/bin/python3 /opt/hermes-agent/hermes gateway run --accept-hooks
+Restart=always
+RestartSec=15
+StandardOutput=append:/var/log/hermes/hermes-gateway.log
+StandardError=append:/var/log/hermes/hermes-gateway.log
+
+[Install]
+WantedBy=multi-user.target

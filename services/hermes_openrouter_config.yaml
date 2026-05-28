@@ -1,0 +1,14 @@
+model:
+  default: gpt-4o-mini
+  provider: custom:openai-direct
+custom_providers:
+  - name: openai-direct
+    base_url: http://127.0.0.1:9999/v1
+memory:
+  enabled: true
+  path: /root/.hermes/memory
+agent:
+  max_iterations: 50
+  shell: bash
+  restart_drain_timeout: 180
+version: 23

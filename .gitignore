@@ -1,0 +1,30 @@
+# Environment & secrets
+.env
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+.venv-hermes/
+*.egg-info/
+dist/
+build/
+
+# Logs & runtime state
+*.log
+*.jsonl
+grid_state.json
+genesis_cache.json
+/tmp/
+
+# macOS
+.DS_Store
+.AppleDouble
+
+# IDE
+.idea/
+.vscode/
+*.swp

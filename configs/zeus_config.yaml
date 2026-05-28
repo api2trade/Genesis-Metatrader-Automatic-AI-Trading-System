@@ -1,0 +1,93 @@
+# GENESIS — Zeus Strategy G Configuration
+# ICT Smart Money: Liquidity Sweep + FVG + Order Block on M5
+# Three-layer sequential confirmation: Sweep → FVG → OB
+
+bridge:
+  url: "http://127.0.0.1:8000"
+  timeout_seconds: 15
+
+mt5_api:
+  url: "https://api.api2trade.com"
+  account_id: "YOUR_API2TRADE_ACCOUNT_UUID"
+  api_key:    "YOUR_API2TRADE_API_KEY"
+
+telegram:
+  chat_id: "YOUR_TELEGRAM_CHAT_ID"
+
+symbols:
+  - "EURUSDxx"
+  - "GBPUSDxx"
+  - "GBPJPYxx"
+  - "XAUUSDxx"
+
+ict:
+  entry_timeframe:    "M5"    # Entry signals
+  context_timeframe:  "M15"   # Structure analysis
+
+  liquidity:
+    swing_lookback:   5       # Bars each side for pivot detection
+    sweep_tolerance:  0.0003  # Price must exceed level by this to count
+    require_rejection: true   # Close must return inside structure (rejection wick)
+    session_highs_lows: true  # Also detect previous session H/L sweeps
+
+  fvg:
+    min_gap_pips: 1.5         # Minimum FVG size to count
+    max_age_bars: 10          # Ignore FVGs older than N bars
+    require_unmitigated: true # FVG must not have been filled yet
+
+  order_block:
+    max_age_bars: 15          # Stale OBs ignored
+    min_body_ratio: 0.35      # Candle body must be ≥35% of full range
+    max_wick_ratio: 0.40      # Total wick ≤40% of full range
+
+  structure:
+    swing_lookback: 5
+    bos_bars: 2               # Bars to confirm structure break
+
+confluence:
+  min_score: 65               # 0-100 — minimum to generate signal
+  max_daily_trades: 2         # ICT is low frequency — 5-15 signals/month
+  allow_third_if_score_ge: 90
+
+  killzone:
+    enabled: true
+    london: {start: 8,  end: 11}   # GMT hours
+    ny:     {start: 13, end: 16}
+
+  scoring:
+    bos_strength:    20
+    sweep_quality:   15
+    fvg_presence:    15
+    ob_quality:      20
+    killzone:        10
+    mtf_confluence:  10
+    ob_freshness:    10
+
+risk:
+  risk_pct:       0.0075      # 0.75% per trade
+  min_rr:         2.0
+  sl_ob_buffer:   0.0002      # SL placed just below/above OB + buffer
+  tp_multiplier:  2.5
+  max_spread_pips: 2.0
+  cooldown_seconds: 120
+
+circuit_breakers:
+  max_equity_drawdown_pct: 15.0
+  max_daily_loss_pct:      6.0
+  max_consecutive_losses:  4
+
+sessions:
+  allowed:
+    - {start: 7, end: 21}
+
+journal:
+  path: "/var/log/zeus/trade_journal.jsonl"
+
+cache:
+  path: "/tmp/genesis_cache.json"
+
+strategy:
+  name:    "Zeus"
+  version: "1.0"
+  comment: "ZEUS-v1"
+  magic_number: 20250519

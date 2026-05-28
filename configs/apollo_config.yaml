@@ -1,0 +1,65 @@
+# GENESIS — Apollo Strategy C Configuration
+# MA Crossover Trend Following — runs alongside Hermes + Ares without interference
+
+bridge:
+  url: "http://127.0.0.1:8000"
+  timeout_seconds: 15
+
+mt5_api:
+  url: "https://api.api2trade.com"
+  account_id: "YOUR_API2TRADE_ACCOUNT_UUID"
+  api_key:    "YOUR_API2TRADE_API_KEY"
+
+telegram:
+  chat_id: "YOUR_TELEGRAM_CHAT_ID"
+
+# Symbols Apollo watches (trend following works best on trending pairs)
+symbols:
+  - "EURUSDxx"
+  - "GBPUSDxx"
+  - "USDJPYxx"
+  - "XAUUSDxx"
+  - "GBPJPYxx"
+
+# MA Crossover parameters
+indicators:
+  fast_ma_period: 9      # Fast MA — golden/death cross
+  slow_ma_period: 21     # Slow MA
+  ma_method: "EMA"       # EMA or SMA
+  signal_timeframe: "M5" # M5 for entries
+  trend_timeframe: "H1"  # H1 for trend direction filter
+  trend_ma_period: 50    # H1 SMA50 — only trade in trend direction
+  atr_period: 14         # ATR for dynamic SL
+
+risk:
+  risk_pct: 0.01          # 1% risk per trade
+  min_rr_ratio: 1.5       # Minimum R:R
+  sl_atr_multiplier: 1.5  # SL = ATR × this value
+  tp_atr_multiplier: 3.0  # TP = ATR × this value
+  max_spread_pips: 1.5
+  block_news_minutes: 45  # Slightly less strict than Ares (trend can absorb news)
+  block_medium_news: false
+
+strictness:
+  # Trend following is MORE patient — requires H1 trend alignment
+  require_trend_alignment: true   # H1 MA must agree with signal direction
+  min_ma_separation_pct: 0.001   # MAs must be at least 0.1% apart to confirm crossover
+  min_adx: 20                    # Minimum trend strength (lower than Ares — trend needs less extreme)
+  cooldown_seconds: 120          # 2min cooldown between signals (prevent whipsaw)
+
+sessions:
+  # Trend following works best during high-liquidity sessions
+  allowed:
+    - {start: 7, end: 20}  # London + NY
+
+journal:
+  path: "/var/log/apollo/trade_journal.jsonl"
+
+cache:
+  path: "/tmp/genesis_cache.json"  # Shared with Hermes + Ares
+
+strategy:
+  name: "Apollo"
+  version: "1.0"
+  comment: "APOLLO-v1"    # Distinguishes from GENESIS-v2 and ARES-v1
+  magic_number: 20250515

@@ -1,0 +1,23 @@
+[Unit]
+Description=GENESIS Ares Strategy B — Telegram Command Bot
+Documentation=https://github.com/your-repo/genesis
+After=network-online.target hermes-gateway.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/GENESIS
+EnvironmentFile=/root/GENESIS/hermes_openrouter_env
+ExecStart=/usr/bin/python3 /root/GENESIS/ares_telegram_bot.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Ares bot logs
+LogsDirectory=ares
+LogsDirectoryMode=0755
+
+[Install]
+WantedBy=multi-user.target
