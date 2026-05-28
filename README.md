@@ -88,8 +88,8 @@ GENESIS communicates with MT5 exclusively through the [API2TRADE](https://app.ap
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/YOUR_USERNAME/genesis-trading.git
-cd genesis-trading
+git clone https://github.com/api2trade/Genesis-Metatrader-Automatic-AI-Trading-System.git
+cd Genesis-Metatrader-Automatic-AI-Trading-System
 
 # 2. Run the setup wizard (generates your .env)
 bash setup.sh
@@ -105,8 +105,8 @@ docker logs -f genesis
 
 ```bash
 # 1. Clone the repo on your VPS
-git clone https://github.com/YOUR_USERNAME/genesis-trading.git
-cd genesis-trading
+git clone https://github.com/api2trade/Genesis-Metatrader-Automatic-AI-Trading-System.git
+cd Genesis-Metatrader-Automatic-AI-Trading-System
 
 # 2. Run setup wizard
 bash setup.sh
@@ -198,7 +198,7 @@ Every strategy returns a JSON object:
 ## 📁 Project Structure
 
 ```
-genesis-trading/
+Genesis-Metatrader-Automatic-AI-Trading-System/
 ├── setup.sh                    # ← Interactive setup wizard (start here)
 ├── install.sh                  # ← VPS production installer
 ├── docker-compose.yml          # ← Docker deployment

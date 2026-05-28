@@ -1,7 +1,7 @@
 # GENESIS: Building a Fully Autonomous MT5 Trading System with Six Strategy Bots and a Python REST API
 
 > **Published by API2TRADE** · [app.api2trade.com](https://app.api2trade.com)
-> **Open-source repository:** `github.com/YOUR_USERNAME/genesis-trading` (GPL-3.0)
+> **Open-source repository:** `api2trade/Genesis-Metatrader-Automatic-AI-Trading-System` (GPL-3.0)
 > **Status:** Live | Engine v2.1 | Tested on Deriv Demo ($10,000 USD) and Exness MT5
 
 ---
@@ -78,7 +78,7 @@ After  (v2):  Python → API2TRADE REST → Broker
 ### File Structure
 
 ```
-genesis-trading/
+Genesis-Metatrader-Automatic-AI-Trading-System/
 ├── setup.sh                    # Interactive setup wizard (run first)
 ├── install.sh                  # Ubuntu 22.04 VPS installer
 ├── docker-compose.yml          # Docker deployment
@@ -614,8 +614,8 @@ You also get an API username and password for Basic HTTP auth on every request.
 ### Step 3: Clone and Configure
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/genesis-trading.git
-cd genesis-trading
+git clone https://github.com/api2trade/Genesis-Metatrader-Automatic-AI-Trading-System.git
+cd Genesis-Metatrader-Automatic-AI-Trading-System
 
 # Option A: Interactive wizard (recommended)
 bash setup.sh

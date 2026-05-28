@@ -8,10 +8,36 @@ import os, requests, json, subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
+# Load dotenv if exists
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except:
+    pass
+
 TG_TOKEN   = os.getenv("TELEGRAM_BOT_TOKEN")
 TG_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
-ARES_JOURNAL      = Path("/var/log/hermes/trade_journal.jsonl")
-ARES_JOURNAL = Path("/var/log/ares/trade_journal.jsonl")
+MT5_API    = os.getenv("MT5_API_URL", "https://mt5.mt4api.dev")
+MT5_ID     = os.getenv("MT5_ACCOUNT_ID", "")
+MT5_AUTH   = (os.getenv("MT5_API_USER", ""), os.getenv("MT5_API_PASS", ""))
+ARES_BRIDGE = MT5_API # Maps to same direct API2TRADE service
+
+# Resolve safe journal paths
+default_journal = "/var/log/hermes/trade_journal.jsonl"
+try:
+    Path(default_journal).parent.mkdir(parents=True, exist_ok=True)
+    JOURNAL = Path(default_journal)
+except Exception:
+    JOURNAL = Path(__file__).parents[1] / "logs" / "hermes" / "trade_journal.jsonl"
+    JOURNAL.parent.mkdir(parents=True, exist_ok=True)
+
+default_ares_journal = "/var/log/ares/trade_journal.jsonl"
+try:
+    Path(default_ares_journal).parent.mkdir(parents=True, exist_ok=True)
+    ARES_JOURNAL = Path(default_ares_journal)
+except Exception:
+    ARES_JOURNAL = Path(__file__).parents[1] / "logs" / "ares" / "trade_journal.jsonl"
+    ARES_JOURNAL.parent.mkdir(parents=True, exist_ok=True)
 
 def tg(msg):
     try:
@@ -63,23 +89,19 @@ def main():
     if not check_service("ares"):
         issues.append("🟡 Ares bot STOPPED")
 
-    # Ares (Account B) state
-    ares_balance_str = "N/A"
-    ares_pos_str     = "None"
-    try:
-        r = requests.get(f"{ARES_BRIDGE}/balance", timeout=5)
-        d = r.json()
-        ares_balance_str = f"€{d['balance']:.2f} (eq €{d.get('equity', d['balance']):.2f})"
-    except:
-        ares_balance_str = "Bridge unreachable"
-    try:
-        r = requests.get(f"{ARES_BRIDGE}/positions", timeout=5)
-        pos = r.json()
-        if isinstance(pos, list) and pos:
-            p = pos[0]
-            ares_pos_str = f"{p.get('symbol')} {p.get('orderType')} {p.get('lots')}lot | P&L: €{p.get('profit', 0):.2f}"
-    except:
-        pass
+    # Ares (Account B) state — mapped to same direct account in v2.1
+    ares_balance_str = balance_str
+    if equity_str != "N/A":
+        ares_balance_str = f"{balance_str} (eq {equity_str})"
+    
+    ares_pos_str = "None"
+    if 'pos' in locals() and isinstance(pos, list):
+        ares_positions = [
+            f"{p.get('symbol')} {p.get('orderType')} {p.get('lots')}lot | P&L: €{p.get('profit', 0):.2f}"
+            for p in pos if "ARES" in str(p.get("comment", "")).upper() or "ARES" in str(p.get("Comment", "")).upper()
+        ]
+        if ares_positions:
+            ares_pos_str = ares_positions[0]
 
     # Ares journal stats
     ares_wins = ares_losses = 0
