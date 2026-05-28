@@ -1,361 +1,376 @@
-# ⚡ GENESIS — Autonomous AI Forex Trading System
+# GENESIS — Autonomous MT5 Trading System
 
-> **6 strategy bots. 1 AI orchestrator. Fully autonomous. Live MT5 trading via [API2TRADE](https://app.api2trade.com).**
+> **Powered by [API2TRADE](https://app.api2trade.com)** — the REST API for MetaTrader 5
 
-GENESIS is a production-grade, open-source autonomous forex trading engine built in Python. It runs 24/5 on a VPS, connects to a live MetaTrader 5 account via the [API2TRADE REST API](https://app.api2trade.com), and executes trades using six independent algorithmic strategies — each named after a Greek god — all coordinated by an AI agent called **Hermes**.
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![Python 3.11](https://img.shields.io/badge/Python-3.11-brightgreen)](https://python.org)
+[![MT5 via API2TRADE](https://img.shields.io/badge/MT5-API2TRADE-orange)](https://app.api2trade.com)
 
-This is the complete, fully working source code published as a case study by [API2TRADE](https://app.api2trade.com).
-
----
-
-## 🏛️ The Six Strategy Gods
-
-| Bot | Command | Strategy | Timeframe | Best For |
-|-----|---------|----------|-----------|----------|
-| **ARES** | `ares analyze EURUSDxx` | BB + RSI Mean Reversion | M1 | Fast scalps on EURUSD/GBPUSD |
-| **APOLLO** | `apollo analyze EURUSDxx` | EMA 9/21 Trend Following | M5 | Trending markets, London open |
-| **ATHENA** | `athena analyze EURUSDxx` | BB + RSI Mean Reversion | M5 | EURUSD ranging conditions |
-| **ARTEMIS** | `artemis analyze EURUSDxx` | Ichimoku Kumo Breakout | H1 | Trend continuations, GBPJPY |
-| **ZEUS** | `zeus analyze EURUSDxx` | ICT Smart Money Concepts | M5 | London/NY killzones, gold |
-| **HEPHAESTUS** | `hephaestus status` | Grid + Martingale ⚠️ | Continuous | Ranging markets (extreme risk) |
+GENESIS is a fully autonomous, multi-strategy Forex trading system that connects to any **MetaTrader 5** account via the [API2TRADE](https://app.api2trade.com) REST API. It runs six independent strategy bots in parallel, managed by **Hermes** — an LLM-powered orchestration brain.
 
 ---
 
-## 🚀 Quick Start (Ubuntu 22.04 VPS)
+## 🏗 Architecture
 
-```bash
-# 1. Clone the repo
-git clone https://github.com/your-org/genesis.git
-cd genesis
-
-# 2. Run the auto-installer (handles everything)
-bash install.sh
+```
+                    ┌─────────────────────────────┐
+                    │         HERMES (Brain)       │
+                    │    GPT-4o-mini · Hourly LLM  │
+                    │    Macro analysis + routing  │
+                    └──────────────┬──────────────┘
+                                   │
+          ┌────────────────────────┼────────────────────────┐
+          │           GENESIS Autonomous Engine              │
+          │         (genesis_autonomous.py · every 5min)    │
+          └──┬──────┬──────┬──────┬──────┬──────────────────┘
+             │      │      │      │      │
+           ARES  APOLLO ATHENA ARTEMIS  ZEUS   HEPHAESTUS
+           M1    M5     M5     H1      M5      Grid
+           BB+RSI EMA   BB+RSI Ichimoku ICT    Martingale
+             │      │      │      │      │        │
+             └──────┴──────┴──────┴──────┴────────┘
+                              │
+                    ┌─────────▼─────────┐
+                    │   API2TRADE REST  │
+                    │  app.api2trade.com│
+                    └─────────┬─────────┘
+                              │
+                    ┌─────────▼─────────┐
+                    │   MetaTrader 5    │
+                    │  (any broker)     │
+                    └───────────────────┘
 ```
 
-The installer will:
-- Install Python 3.11 and all dependencies
-- Create `/opt/hermes-agent/` with the full engine
-- Set up all `/var/log/<strategy>/` directories
-- Prompt for your API2TRADE credentials, Telegram token, and OpenRouter key
-- Install all CLI shortcuts (`ares`, `zeus`, `genesis-scan`, etc.)
-- Set up all cron jobs automatically
+---
 
-**That's it.** After install, test with:
-```bash
-ares analyze EURUSDxx
-zeus analyze GBPUSDxx
-genesis-scan EURUSDxx
-```
+## 🤖 Strategy Bots
+
+| Bot | Timeframe | Strategy | Symbols | Expected Signals |
+|-----|-----------|----------|---------|-----------------|
+| **ARES** | M1 | Bollinger Bands + RSI mean reversion | EURUSD, GBPUSD | 10–30/day |
+| **APOLLO** | M5 | EMA 9/21 crossover trend following | EURUSD, GBPUSD | 5–15/day |
+| **ATHENA** | M5 | Multi-TF BB + RSI ranging | EURUSD | 5–15/day |
+| **ARTEMIS** | H1 | Ichimoku Kumo breakout | EURUSD, GBPUSD, GBPJPY | 2–8/day |
+| **ZEUS** | M5 | ICT Smart Money — Liquidity + FVG + OB | EURUSD, GBPUSD, XAUUSD | 3–10/day |
+| **HEPHAESTUS** | — | Grid / Martingale cycling | Any | Continuous |
 
 ---
 
 ## 📋 Prerequisites
 
-| Requirement | Where to get it | Cost |
-|-------------|----------------|------|
-| Ubuntu 22.04 VPS | [Hetzner](https://hetzner.com) (CX22) or any provider | ~€12/mo |
-| MT5 trading account | [Exness](https://exness.com) or any MT5 broker | Free |
-| **API2TRADE account** | **[app.api2trade.com](https://app.api2trade.com)** | **€12/mo per account** |
-| Telegram Bot | [@BotFather](https://t.me/BotFather) on Telegram | Free |
-| OpenRouter API key | [openrouter.ai](https://openrouter.ai) | ~$1–2/mo (GPT-4o-mini) |
-| TwelveData API key | [twelvedata.com](https://twelvedata.com) | Free tier |
+### 1. API2TRADE Account (Required)
 
-> **Total monthly cost: ~€30–40/month** for a fully live, autonomous trading system.
+GENESIS communicates with MT5 exclusively through the [API2TRADE](https://app.api2trade.com) REST API — no local MT5 installation, no Windows VPS required.
 
----
-
-## 🔑 API2TRADE Setup
-
-GENESIS uses the **[API2TRADE REST API](https://app.api2trade.com)** to communicate with your MT5 terminal:
-
-1. Sign up at [app.api2trade.com](https://app.api2trade.com)
-2. Connect your MT5 account (enter login/password/server)
+1. Sign up at **[app.api2trade.com](https://app.api2trade.com)**
+2. Connect your MetaTrader 5 account
 3. Copy your **Account UUID** and **API Key** from the dashboard
-4. Paste them into `.env` when prompted by `install.sh`
+
+> **Cost:** €12/month per connected MT5 account · No per-call fees · Unlimited requests
+
+### 2. Telegram Bot (Required for alerts)
+
+1. Message [@BotFather](https://t.me/BotFather) → `/newbot`
+2. Copy the bot token
+3. Get your Chat ID from [@userinfobot](https://t.me/userinfobot)
+
+### 3. OpenAI API Key (Optional — for Hermes brain)
+
+1. Get a key at [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+2. Cost: ~$0.10–0.50/day using `gpt-4o-mini`
+3. Without it: GENESIS runs strategies autonomously without LLM macro analysis
+
+---
+
+## 🚀 Quick Start
+
+### Option A — Docker (Recommended for local testing)
 
 ```bash
-# API calls used by GENESIS:
-GET  /balance                          # Account equity & balance
-GET  /positions                        # All open positions
-GET  /quote?symbol=EURUSDxx            # Live bid/ask
-GET  /symbols                          # Available symbols
-GET  /history                          # Closed order history
-POST /market   {symbol, volume, type, stop_loss, take_profit, comment}
-POST /close    {ticket}
-POST /modify   {ticket, stop_loss, take_profit}
+# 1. Clone the repo
+git clone https://github.com/YOUR_USERNAME/genesis-trading.git
+cd genesis-trading
+
+# 2. Run the setup wizard (generates your .env)
+bash setup.sh
+
+# 3. Start the container
+docker compose up -d
+
+# 4. Watch it run
+docker logs -f genesis
 ```
 
----
-
-## 📁 Repository Structure
-
-```
-genesis/
-├── README.md                    ← You are here
-├── install.sh                   ← One-command VPS installer
-├── requirements.txt             ← Python dependencies
-├── .env.example                 ← Environment variable template
-├── .gitignore
-│
-├── core/                        ← Hermes AI orchestrator + engine
-│   ├── trading_cycle.py         ← LLM macro analysis (hourly)
-│   ├── genesis_autonomous.py    ← Main 5-min strategy scan loop
-│   ├── genesis_brain_feed.py    ← Hourly Telegram intelligence report
-│   ├── genesis_daily_report.py  ← Daily P&L summary
-│   ├── genesis_trade_monitor.py ← Open position monitor
-│   ├── genesis_market_open.py   ← Market open notification
-│   ├── heartbeat.py             ← VPS health ping
-│   └── tg_notify.py             ← Telegram notification helper
-│
-├── strategies/
-│   ├── ares/                    ← BB+RSI M1 (+ Telegram bot)
-│   ├── apollo/                  ← EMA M5 (+ Telegram bot)
-│   ├── athena/                  ← BB+RSI M5 (+ Telegram bot)
-│   ├── artemis/                 ← Ichimoku H1
-│   ├── zeus/                    ← ICT Smart Money M5
-│   └── hephaestus/              ← Grid/Martingale ⚠️
-│
-├── configs/                     ← YAML config for every strategy
-│   ├── ares_config.yaml
-│   ├── apollo_config.yaml
-│   ├── athena_config.yaml
-│   ├── artemis_config.yaml
-│   ├── zeus_config.yaml
-│   └── hephaestus_config.yaml   ← confirm_risk_acknowledged: false
-│
-├── backtest/
-│   ├── backtest.py              ← Historical backtest runner
-│   └── BB_RSI_MeanReversion.mq5 ← Original MQL5 EA (ARES source)
-│
-└── services/                    ← Systemd unit files (templates)
-    ├── hermes.service
-    ├── ares.service
-    └── hermes_openrouter.service
-```
-
----
-
-## ⚙️ Manual Configuration
-
-Each strategy reads its parameters from `configs/<strategy>_config.yaml`. Edit these **before** running:
-
-```yaml
-# configs/ares_config.yaml — example
-bridge:
-  url: "http://127.0.0.1:8000"    # Local bridge URL — don't change
-
-mt5_api:
-  account_id: "YOUR_API2TRADE_ACCOUNT_UUID"
-  api_key:    "YOUR_API2TRADE_API_KEY"
-
-telegram:
-  chat_id: "YOUR_TELEGRAM_CHAT_ID"
-
-risk:
-  risk_pct: 0.01          # 1% per trade (never exceed 0.02)
-  min_rr_ratio: 1.5       # Minimum reward:risk ratio
-
-sessions:
-  allowed:
-    - {start: 7, end: 21} # London + NY hours UTC only
-```
-
-### Hephaestus — Explicit Risk Gate
-
-The grid/martingale strategy is **disabled by default** and will refuse to run until you explicitly acknowledge the risk:
-
-```yaml
-# configs/hephaestus_config.yaml
-strategy:
-  confirm_risk_acknowledged: false   # ← Change to true ONLY after reading the risk warning
-```
-
-> ⚠️ Grid/Martingale can produce 90%+ win rates in ranging markets but carries **unlimited drawdown risk** in trending conditions. Never run with more than 0.01 initial lots without extensive backtesting.
-
----
-
-## 🔄 Cron Schedule
-
-The installer sets up these cron jobs automatically:
-
-| Schedule | Script | Purpose |
-|----------|--------|---------|
-| `*/5 * * * *` | `core/genesis_autonomous.py` | Scan all strategies + execute signals |
-| `0 * * * *` | `core/trading_cycle.py` | Hermes LLM macro analysis |
-| `30 * * * *` | `core/genesis_brain_feed.py` | Hourly Telegram report |
-| `0 7 * * 1-5` | `core/genesis_market_open.py` | Market open alert (weekdays) |
-| `0 6 * * *` | `core/genesis_daily_report.py` | Daily P&L summary |
-| `*/10 * * * *` | `core/heartbeat.py` | VPS health ping |
-
----
-
-## 📱 CLI Commands
-
-After installation, use these from anywhere on the VPS:
+### Option B — VPS Production (Ubuntu 22.04)
 
 ```bash
-# Analyze — returns signal or wait reason
-ares analyze EURUSDxx
-apollo analyze GBPUSDxx
-athena analyze EURUSDxx
-artemis analyze GBPUSDxx
-zeus analyze XAUUSDxx
-zeus analyze GBPUSDxx
+# 1. Clone the repo on your VPS
+git clone https://github.com/YOUR_USERNAME/genesis-trading.git
+cd genesis-trading
 
-# Execute a trade (bot places order)
-ares execute EURUSDxx
-zeus execute GBPUSDxx
+# 2. Run setup wizard
+bash setup.sh
 
-# Hephaestus grid
-hephaestus status
-hephaestus tick
+# 3. Install as system services
+bash install.sh
 
-# Full scan — all strategies on one symbol at once
-genesis-scan EURUSDxx
-genesis-scan GBPUSDxx
+# 4. Check status
+systemctl status genesis-ares genesis-autonomous
 ```
 
 ---
 
-## 📊 External Data Sources
+## 🔧 Manual Setup
 
-GENESIS uses 8 free/low-cost data sources for its intelligence layer:
+If you prefer to configure manually instead of using `setup.sh`:
 
-| Source | Data | Cost |
-|--------|------|------|
-| [yfinance](https://pypi.org/project/yfinance/) | OHLCV bars, currency strength, indices | Free |
-| [FRED API](https://fred.stlouisfed.org/docs/api/) | Fed rates, yield curves, CPI, GDP | Free |
-| [ForexFactory](https://nfs.faireconomy.media/ff_calendar_thisweek.json) | Economic calendar | Free |
-| [CFTC.gov](https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm) | COT report (hedge fund positioning) | Free |
-| CNN Fear & Greed | Market sentiment 0–100 | Free |
-| [TwelveData](https://twelvedata.com) | RSI, MACD, ADX, Stochastic | Free tier |
-| [API2TRADE](https://app.api2trade.com) | Economic calendar, closed orders, live quotes | €12/mo |
-| [Alternative.me](https://alternative.me/crypto/fear-and-greed-index/) | Crypto Fear & Greed (risk proxy) | Free |
+```bash
+cp .env.example .env
+nano .env   # Fill in your credentials
+```
+
+Required fields:
+
+| Variable | Where to get it |
+|----------|----------------|
+| `MT5_ACCOUNT_UUID` | [app.api2trade.com](https://app.api2trade.com) → Dashboard |
+| `MT5_API_KEY` | [app.api2trade.com](https://app.api2trade.com) → API Keys |
+| `MT5_API_USER` | Your API2TRADE username |
+| `MT5_API_PASS` | Your API2TRADE password |
+| `TELEGRAM_BOT_TOKEN` | [@BotFather](https://t.me/BotFather) |
+| `TELEGRAM_CHAT_ID` | [@userinfobot](https://t.me/userinfobot) |
 
 ---
 
-## 📈 Hermes — How the AI Makes Decisions
+## 💻 Usage
 
-The `trading_cycle.py` script runs hourly and sends a **rich intelligence prompt** to GPT-4o-mini (via OpenRouter). The prompt includes:
+### Strategy Analysis
 
-- Fed Funds Rate, yield curves, CPI, GDP, M2 money supply
-- VIX + CNN Fear & Greed Index
-- Currency strength index (all 8 majors, 4h momentum)
-- CFTC COT Report (hedge fund net positions)
-- Interest rate differentials (2Y bond yields, 7 currencies)
-- 20-day rolling pair correlations
-- ForexFactory calendar (next 2 weeks)
-- M15/H1/H4/D1 technical indicators (all symbols)
-- Last 20 trades (win/loss learning)
+```bash
+# Single strategy analysis (no trade placed)
+docker exec -it genesis ares analyze EURUSDxx
+docker exec -it genesis apollo analyze GBPUSDxx
+docker exec -it genesis athena analyze EURUSDxx
+docker exec -it genesis artemis analyze GBPUSDxx
+docker exec -it genesis zeus analyze XAUUSDxx
 
-**Hermes responds with a single JSON object:**
+# Scan ALL strategies on one symbol at once
+docker exec -it genesis genesis-scan EURUSDxx
+docker exec -it genesis genesis-scan GBPUSDxx
+```
+
+### Live Logs
+
+```bash
+# All decisions
+docker exec -it genesis tail -f /var/log/hermes/autonomous.log
+
+# Trade journal (JSONL)
+docker exec -it genesis tail -f /var/log/hermes/trade_journal.jsonl
+
+# LLM macro cycles
+docker exec -it genesis tail -f /var/log/hermes/trading_cycle.log
+```
+
+### Strategy Output Format
+
+Every strategy returns a JSON object:
+
 ```json
 {
   "action": "trade",
+  "strategy": "ares-bb-rsi-m1",
   "symbol": "EURUSDxx",
   "direction": "Buy",
-  "stop_loss": 1.08120,
-  "take_profit": 1.09400,
-  "volume": 0.04,
+  "entry": 1.08542,
+  "stop_loss": 1.08392,
+  "take_profit": 1.08842,
+  "volume": 0.1,
+  "rr_ratio": 2.0,
+  "sl_pips": 15.0,
   "confidence": "high",
-  "reason": "...",
-  "signals_aligned": ["COT_BULLISH_EUR", "LONDON_KILLZONE", ...]
+  "reason": "RSI oversold + BB lower touch + session active"
 }
 ```
 
 ---
 
-## 🛡️ Risk Management
+## 📁 Project Structure
 
-GENESIS has **hard-coded, non-overridable risk limits** at every level:
-
-| Rule | Value |
-|------|-------|
-| Max open positions | 4 total |
-| Max per strategy | 1 position |
-| Stop-loss | Mandatory — always. Range: 5–150 pips |
-| Max lots per trade | 3.0 lots |
-| Max risk per trade | 2% of balance |
-| Weekend trading | Blocked (Fri 22:00 – Sun 22:00 UTC) |
-| High-impact news | Blocked 30–60 min before events |
-| Max spread | 1.5–2.0 pips (strategy-dependent) |
-| Emergency close | 10 retries × 30s before Telegram alert |
-
----
-
-## 📋 Logs
-
-```bash
-# Main engine decisions
-tail -f /var/log/hermes/trading_cycle.log
-
-# All trades (JSONL)
-tail -f /var/log/hermes/trade_journal.jsonl
-
-# Autonomous loop
-tail -f /var/log/hermes/autonomous.log
-
-# Per-strategy
-tail -f /var/log/zeus/zeus_cycle.log
-tail -f /var/log/ares/ares_cycle.log
+```
+genesis-trading/
+├── setup.sh                    # ← Interactive setup wizard (start here)
+├── install.sh                  # ← VPS production installer
+├── docker-compose.yml          # ← Docker deployment
+├── Dockerfile
+├── .env.example                # ← Credential template
+│
+├── core/
+│   ├── genesis_autonomous.py   # Main engine — runs every 5min via cron
+│   ├── trading_cycle.py        # Hermes LLM macro cycle — hourly
+│   ├── genesis_daily_report.py # Daily P&L Telegram report
+│   ├── genesis_brain_feed.py   # Hourly Telegram market summary
+│   ├── heartbeat.py            # System health check
+│   └── tg_notify.py            # Telegram helper
+│
+├── strategies/
+│   ├── ares/                   # BB+RSI M1 mean reversion
+│   │   ├── ares_cycle.py       # Strategy logic + API2TRADE bridge
+│   │   └── ares_tool.py        # CLI: ares analyze/execute EURUSDxx
+│   ├── apollo/                 # EMA trend following
+│   ├── athena/                 # BB+RSI multi-TF ranging
+│   ├── artemis/                # Ichimoku H1 breakout
+│   ├── zeus/                   # ICT Smart Money M5
+│   └── hephaestus/             # Grid/Martingale
+│
+├── configs/
+│   ├── ares_config.yaml        # ARES parameters (BB period, RSI thresholds, etc.)
+│   ├── apollo_config.yaml
+│   ├── athena_config.yaml
+│   ├── artemis_config.yaml
+│   ├── zeus_config.yaml
+│   └── hephaestus_config.yaml
+│
+└── backtest/
+    ├── backtest.py             # Python backtester using yfinance
+    └── BB_RSI_MeanReversion.mq5  # MT5 Expert Advisor (manual backtest)
 ```
 
 ---
 
-## 🔬 Backtesting
+## ⚡ API2TRADE — How It Works
 
-Run the backtest module against historical yfinance data:
+GENESIS uses API2TRADE as the bridge between Python and MetaTrader 5. Every strategy calls these endpoints directly:
 
-```bash
-cd /opt/hermes-agent
-python3 backtest/backtest.py --symbol EURUSD --timeframe H1 --days 365
+```python
+# Get account balance
+GET /AccountSummary?id={session_uuid}
+→ {"balance": 10000.0, "equity": 10000.0, "currency": "USD"}
+
+# Get live quote
+GET /Quote?id={session_uuid}&symbol=EURUSDxx
+→ {"Bid": 1.08540, "Ask": 1.08542}
+
+# Place a trade
+GET /OrderSendSafe?id={session_uuid}&symbol=EURUSDxx&operation=Buy&volume=0.1&stoploss=1.083&takeprofit=1.090&comment=GENESIS-ARES
+→ {"ticket": 12345678}
+
+# Close a position
+GET /OrderCloseSafe?id={session_uuid}&ticket=12345678&lots=0.1
 ```
 
-> **Our initial results:** An EMA20/50+RSI strategy produced a 24.8% win rate across 460 trades (all Profit Factors < 1.0). This is documented honestly in the case study — we rejected that strategy and built the 6 gods instead.
+No WebSocket setup, no local MT5 terminal, no Windows server. Just REST calls from any Python environment.
+
+> 💡 **Sign up at [app.api2trade.com](https://app.api2trade.com) to get your session UUID and API key.**
 
 ---
 
-## 📖 Full Case Study
+## 🛡 Risk Management
 
-Read the complete technical deep-dive, architecture decisions, challenges, and cost breakdown:
+Hard limits enforced before **every** trade — cannot be bypassed:
 
-👉 **[GENESIS Case Study — Published by API2TRADE](https://app.api2trade.com)**
+| Limit | Default | Config |
+|-------|---------|--------|
+| Max risk per trade | **2% of balance** | `MAX_RISK_PCT` in `.env` |
+| Max lot size | **3.0 lots** | `MAX_LOTS` in `.env` |
+| Max open positions | **4** | `MAX_POSITIONS` in `.env` |
+| Stop loss | **Required** (5–150 pips) | Per strategy config |
+| Spread filter | **1.0–3.0 pips** | Per strategy YAML |
+| News filter | **±15 min** around high-impact | Per strategy YAML |
 
 ---
 
-## 📜 License
+## ⚙️ Configuration
 
-This project is licensed under the **GNU General Public License v3.0 (GPL-3.0)**.
+Each strategy has a dedicated YAML config in `configs/`. Example for ARES:
 
-You are free to use, modify, and distribute this code. Any derivative works must also be released under GPL-3.0.
+```yaml
+# configs/ares_config.yaml
+strategy:
+  name: ARES
+  magic_number: 1001
 
-See [LICENSE](LICENSE) for full text.
+bollinger:
+  period: 20
+  std_dev: 2.0
+
+rsi:
+  period: 14
+  oversold: 30
+  overbought: 70
+
+risk:
+  risk_pct: 0.01          # 1% per trade
+  max_spread_pips: 1.0
+  min_rr_ratio: 1.5
+
+sessions:
+  allowed:
+    - {start: 7, end: 20}  # GMT hours
+```
+
+---
+
+## 🖥 VPS Deployment (Recommended)
+
+For 24/7 autonomous trading, deploy on a Ubuntu 22.04 VPS:
+
+```bash
+# Minimum spec: 2 vCPU, 2GB RAM, 20GB SSD
+# Cost: ~€4–8/month (Hetzner, Contabo, DigitalOcean)
+
+bash setup.sh    # Configure credentials
+bash install.sh  # Install Python, venv, cron jobs, systemd services
+```
+
+The installer sets up:
+- Python 3.11 virtual environment at `/opt/hermes-agent/.venv-hermes`
+- Cron job: `genesis_autonomous.py` every 5 minutes
+- Cron job: `trading_cycle.py` (Hermes LLM) every hour
+- Log rotation at `/var/log/hermes/`
+- CLI shortcuts: `ares`, `apollo`, `athena`, `artemis`, `zeus`, `hephaestus`, `genesis-scan`
+
+---
+
+## 📊 Backtesting
+
+```bash
+# Backtest ARES on EURUSD (last 12 months)
+python3 backtest/backtest.py --strategy ares --symbol EURUSD --days 365
+
+# Or open the MT5 EA in MetaEditor for native backtesting
+# backtest/BB_RSI_MeanReversion.mq5
+```
+
+---
+
+## 🤝 Contributing
+
+GENESIS is open source under **GPL v3** — forks must also be open source.
+
+1. Fork the repo
+2. Create your feature branch (`git checkout -b feature/my-strategy`)
+3. Commit your changes
+4. Open a Pull Request
 
 ---
 
 ## ⚠️ Disclaimer
 
-GENESIS trades real money on a live MT5 account. **Forex trading involves significant risk of capital loss.** Past strategy performance does not guarantee future results. This is an open-source research project, not financial advice.
-
-- Never risk more than you can afford to lose
-- Always backtest a strategy before running it live
-- Monitor the system daily, especially Hephaestus
-- The authors are not responsible for trading losses
+This software is for **educational and research purposes**. Forex trading involves substantial risk of loss. Past performance does not guarantee future results. Always test on a **demo account** before trading with real money. The authors accept no responsibility for financial losses.
 
 ---
 
-## 🔗 Links
+## 📄 License
 
-| Resource | URL |
-|----------|-----|
-| **API2TRADE** (MT5 REST API) | [app.api2trade.com](https://app.api2trade.com) |
-| OpenRouter (LLM gateway) | [openrouter.ai](https://openrouter.ai) |
-| Hetzner VPS | [hetzner.com](https://hetzner.com) |
-| FRED API | [fred.stlouisfed.org](https://fred.stlouisfed.org/docs/api/) |
-| TwelveData | [twelvedata.com](https://twelvedata.com) |
-| CFTC COT Report | [cftc.gov](https://www.cftc.gov/MarketReports/CommitmentsofTraders/) |
-| ForexFactory Calendar | [forexfactory.com](https://forexfactory.com) |
+GPL-3.0 · See [LICENSE](LICENSE)
 
 ---
 
-*Built with ❤️ and published by [API2TRADE](https://app.api2trade.com)*
+<div align="center">
+
+**Built with API2TRADE · [app.api2trade.com](https://app.api2trade.com)**
+
+*Connect any MT5 account to Python in minutes · €12/month per account*
+
+</div>
