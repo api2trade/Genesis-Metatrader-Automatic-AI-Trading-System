@@ -33,8 +33,21 @@ YF_MAP = {
     "SPX500xx": "ES=F",       "GER40xx":  "FDAX=F",     "BTCUSDxx": "BTC-USD",
     "ETHUSDxx": "ETH-USD",
 }
-logging.basicConfig(filename="/var/log/hermes/trading_cycle.log", level=logging.INFO,
-                    format="%(asctime)s %(levelname)s %(message)s")
+# Resolve safe log path (fallback to local logs/ if system dir not writable)
+default_log = "/var/log/hermes/trading_cycle.log"
+try:
+    Path(default_log).parent.mkdir(parents=True, exist_ok=True)
+    log_file = default_log
+except Exception:
+    local_log_dir = Path(__file__).parents[1] / "logs" / "hermes"
+    local_log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = str(local_log_dir / "trading_cycle.log")
+
+logging.basicConfig(
+    filename=log_file,
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s"
+)
 log = logging.getLogger(__name__)
 
 # ─── Cache (avoid hammering external APIs) ────────────────────

@@ -21,6 +21,8 @@ import requests
 import yaml
 
 CONFIG_PATH = Path(__file__).parent / "apollo_config.yaml"
+if not CONFIG_PATH.exists():
+    CONFIG_PATH = Path(__file__).parents[2] / "configs" / "apollo_config.yaml"
 with open(CONFIG_PATH) as f:
     CFG = yaml.safe_load(f)
 
@@ -32,8 +34,16 @@ MT5_AUTH   = (os.getenv("MT5_API_USER", ""), os.getenv("MT5_API_PASS", ""))
 TG_TOKEN   = os.getenv("TELEGRAM_BOT_TOKEN")
 TG_CHAT_ID = str(CFG["telegram"]["chat_id"])
 CACHE_FILE = Path(CFG["cache"]["path"])
-JOURNAL    = Path(CFG["journal"]["path"])
-JOURNAL.parent.mkdir(parents=True, exist_ok=True)
+# Resolve safe journal path (fallback to local logs/ if system dir not writable)
+default_journal = CFG["journal"]["path"]
+try:
+    Path(default_journal).parent.mkdir(parents=True, exist_ok=True)
+    JOURNAL = Path(default_journal)
+except Exception:
+    local_log_dir = Path(__file__).parents[2] / "logs" / "apollo"
+    local_log_dir.mkdir(parents=True, exist_ok=True)
+    JOURNAL = local_log_dir / "trade_journal.jsonl"
+
 
 FAST_MA     = int(CFG["indicators"]["fast_ma_period"])
 SLOW_MA     = int(CFG["indicators"]["slow_ma_period"])
@@ -60,8 +70,18 @@ START_HOUR      = int(CFG["sessions"]["allowed"][0]["start"])
 END_HOUR        = int(CFG["sessions"]["allowed"][0]["end"])
 MAGIC_COMMENT   = CFG["strategy"]["comment"]
 
+# Resolve safe log path (fallback to local logs/ if system dir not writable)
+default_log = "/var/log/apollo/apollo_cycle.log"
+try:
+    Path(default_log).parent.mkdir(parents=True, exist_ok=True)
+    log_file = default_log
+except Exception:
+    local_log_dir = Path(__file__).parents[2] / "logs" / "apollo"
+    local_log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = str(local_log_dir / "apollo_cycle.log")
+
 logging.basicConfig(
-    filename="/var/log/apollo/apollo_cycle.log",
+    filename=log_file,
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(message)s"
 )

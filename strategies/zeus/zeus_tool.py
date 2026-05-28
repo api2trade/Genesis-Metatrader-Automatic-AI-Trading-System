@@ -9,6 +9,8 @@ from datetime import datetime, timezone
 import yaml, requests
 
 CONFIG_PATH = Path(__file__).parent / "zeus_config.yaml"
+if not CONFIG_PATH.exists():
+    CONFIG_PATH = Path(__file__).parents[2] / "configs" / "zeus_config.yaml"
 with open(CONFIG_PATH) as f: CFG = yaml.safe_load(f)
 
 TG_TOKEN   = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -17,10 +19,31 @@ STRATEGY   = CFG["strategy"]["name"]
 COMMENT    = CFG["strategy"]["comment"]
 SYMBOLS    = CFG["symbols"]
 BRIDGE_URL = CFG["bridge"]["url"]
-JOURNAL    = Path(CFG["journal"]["path"])
+# Resolve safe journal path (fallback to local logs/ if system dir not writable)
+default_journal = CFG["journal"]["path"]
+try:
+    Path(default_journal).parent.mkdir(parents=True, exist_ok=True)
+    JOURNAL = Path(default_journal)
+except Exception:
+    local_log_dir = Path(__file__).parents[2] / "logs" / "zeus"
+    local_log_dir.mkdir(parents=True, exist_ok=True)
+    JOURNAL = local_log_dir / "trade_journal.jsonl"
 
-logging.basicConfig(filename="/var/log/zeus/zeus_bot.log", level=logging.INFO,
-                    format="%(asctime)s %(levelname)s %(message)s")
+# Resolve safe log path (fallback to local logs/ if system dir not writable)
+default_log = "/var/log/zeus/zeus_bot.log"
+try:
+    Path(default_log).parent.mkdir(parents=True, exist_ok=True)
+    log_file = default_log
+except Exception:
+    local_log_dir = Path(__file__).parents[2] / "logs" / "zeus"
+    local_log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = str(local_log_dir / "zeus_bot.log")
+
+logging.basicConfig(
+    filename=log_file,
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s"
+)
 log = logging.getLogger(__name__)
 _pending: dict = {}
 _lock = threading.Lock()
@@ -65,7 +88,7 @@ def do_execute(sym):
         "take_profit":result["take_profit"],"comment":COMMENT})
     ticket=order.get("ticket") or order.get("Ticket")
     if ticket:
-        JOURNAL.parent.mkdir(parents=True,exist_ok=True)
+        
         with open(JOURNAL,"a") as f:
             f.write(json.dumps({"ticket":str(ticket),"symbol":result["symbol"],
                 "direction":result["direction"],"volume":result["volume"],

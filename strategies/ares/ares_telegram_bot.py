@@ -17,17 +17,37 @@ import yaml
 
 # ── Config ────────────────────────────────────────────────────────────────────
 CONFIG_PATH = Path(__file__).parent / "ares_config.yaml"
+if not CONFIG_PATH.exists():
+    CONFIG_PATH = Path(__file__).parents[2] / "configs" / "ares_config.yaml"
 with open(CONFIG_PATH) as f:
     CFG = yaml.safe_load(f)
 
 TG_TOKEN   = os.getenv("TELEGRAM_BOT_TOKEN")
 TG_CHAT_ID = str(CFG["telegram"]["chat_id"])
 BRIDGE     = CFG["bridge"]["url"]
-JOURNAL    = Path(CFG["journal"]["path"])
+# Resolve safe journal path (fallback to local logs/ if system dir not writable)
+default_journal = CFG["journal"]["path"]
+try:
+    Path(default_journal).parent.mkdir(parents=True, exist_ok=True)
+    JOURNAL = Path(default_journal)
+except Exception:
+    local_log_dir = Path(__file__).parents[2] / "logs" / "ares"
+    local_log_dir.mkdir(parents=True, exist_ok=True)
+    JOURNAL = local_log_dir / "trade_journal.jsonl"
 STRATEGY   = CFG["strategy"]["name"]
 
+# Resolve safe log path (fallback to local logs/ if system dir not writable)
+default_log = "/var/log/ares/ares_bot.log"
+try:
+    Path(default_log).parent.mkdir(parents=True, exist_ok=True)
+    log_file = default_log
+except Exception:
+    local_log_dir = Path(__file__).parents[2] / "logs" / "ares"
+    local_log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = str(local_log_dir / "ares_bot.log")
+
 logging.basicConfig(
-    filename="/var/log/ares/ares_bot.log",
+    filename=log_file,
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(message)s"
 )
@@ -71,7 +91,7 @@ def bridge(path, method="GET", data=None):
 
 # ── Journal helpers ───────────────────────────────────────────────────────────
 def journal_write(entry: dict):
-    JOURNAL.parent.mkdir(parents=True, exist_ok=True)
+    
     with open(JOURNAL, "a") as f:
         f.write(json.dumps(entry) + "\n")
 

@@ -15,6 +15,8 @@ from pathlib import Path
 import requests, yaml
 
 CONFIG_PATH = Path(__file__).parent / "zeus_config.yaml"
+if not CONFIG_PATH.exists():
+    CONFIG_PATH = Path(__file__).parents[2] / "configs" / "zeus_config.yaml"
 with open(CONFIG_PATH) as f:
     CFG = yaml.safe_load(f)
 
@@ -25,8 +27,16 @@ MT5_KEY    = os.getenv("MT5_API_KEY",    CFG["mt5_api"]["api_key"])
 MT5_AUTH   = (os.getenv("MT5_API_USER", ""), os.getenv("MT5_API_PASS", ""))
 TG_TOKEN   = os.getenv("TELEGRAM_BOT_TOKEN")
 TG_CHAT_ID = str(os.getenv("TELEGRAM_CHAT_ID", CFG["telegram"]["chat_id"]))
-JOURNAL    = Path(CFG["journal"]["path"])
-JOURNAL.parent.mkdir(parents=True, exist_ok=True)
+# Resolve safe journal path (fallback to local logs/ if system dir not writable)
+default_journal = CFG["journal"]["path"]
+try:
+    Path(default_journal).parent.mkdir(parents=True, exist_ok=True)
+    JOURNAL = Path(default_journal)
+except Exception:
+    local_log_dir = Path(__file__).parents[2] / "logs" / "zeus"
+    local_log_dir.mkdir(parents=True, exist_ok=True)
+    JOURNAL = local_log_dir / "trade_journal.jsonl"
+
 COMMENT    = CFG["strategy"]["comment"]
 
 # ICT config
@@ -57,8 +67,21 @@ MAX_DL_PCT  = float(CFG["circuit_breakers"]["max_daily_loss_pct"])
 START_H     = int(CFG["sessions"]["allowed"][0]["start"])
 END_H       = int(CFG["sessions"]["allowed"][0]["end"])
 
-logging.basicConfig(filename="/var/log/zeus/zeus_cycle.log", level=logging.INFO,
-                    format="%(asctime)s %(levelname)s %(message)s")
+# Resolve safe log path (fallback to local logs/ if system dir not writable)
+default_log = "/var/log/zeus/zeus_cycle.log"
+try:
+    Path(default_log).parent.mkdir(parents=True, exist_ok=True)
+    log_file = default_log
+except Exception:
+    local_log_dir = Path(__file__).parents[2] / "logs" / "zeus"
+    local_log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = str(local_log_dir / "zeus_cycle.log")
+
+logging.basicConfig(
+    filename=log_file,
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s"
+)
 log = logging.getLogger(__name__)
 _last_sig: dict = {}
 _daily: dict   = {}

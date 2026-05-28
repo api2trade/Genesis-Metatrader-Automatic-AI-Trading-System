@@ -11,13 +11,23 @@ from pathlib import Path
 import yaml, requests
 
 CONFIG_PATH = Path(__file__).parent / "artemis_config.yaml"
+if not CONFIG_PATH.exists():
+    CONFIG_PATH = Path(__file__).parents[2] / "configs" / "artemis_config.yaml"
 with open(CONFIG_PATH) as f:
     CFG = yaml.safe_load(f)
 
 TG_TOKEN   = os.getenv("TELEGRAM_BOT_TOKEN")
 TG_CHAT_ID = str(CFG["telegram"]["chat_id"])
 BRIDGE_URL = CFG["bridge"]["url"]
-JOURNAL    = Path(CFG["journal"]["path"])
+# Resolve safe journal path (fallback to local logs/ if system dir not writable)
+default_journal = CFG["journal"]["path"]
+try:
+    Path(default_journal).parent.mkdir(parents=True, exist_ok=True)
+    JOURNAL = Path(default_journal)
+except Exception:
+    local_log_dir = Path(__file__).parents[2] / "logs" / "artemis"
+    local_log_dir.mkdir(parents=True, exist_ok=True)
+    JOURNAL = local_log_dir / "trade_journal.jsonl"
 STRATEGY   = CFG["strategy"]["name"]
 COMMENT    = CFG["strategy"]["comment"]
 SYMBOLS    = CFG["symbols"]
@@ -51,7 +61,7 @@ def bridge(path, method="GET", data=None):
     except Exception as e: return {"error": str(e)}
 
 def journal_write(entry):
-    JOURNAL.parent.mkdir(parents=True,exist_ok=True)
+    
     with open(JOURNAL,"a") as f: f.write(json.dumps(entry)+"\n")
 
 def journal_stats():

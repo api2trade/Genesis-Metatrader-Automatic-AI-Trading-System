@@ -10,6 +10,8 @@ from datetime import datetime, timezone
 import yaml, requests
 
 CONFIG_PATH = Path(__file__).parent / "hephaestus_config.yaml"
+if not CONFIG_PATH.exists():
+    CONFIG_PATH = Path(__file__).parents[2] / "configs" / "hephaestus_config.yaml"
 with open(CONFIG_PATH) as f:
     CFG = yaml.safe_load(f)
 
@@ -18,9 +20,20 @@ TG_CHAT_ID = str(CFG["telegram"]["chat_id"])
 STRATEGY   = CFG["strategy"]["name"]
 COMMENT    = CFG["strategy"]["comment"]
 
+# Resolve safe log path (fallback to local logs/ if system dir not writable)
+default_log = "/var/log/hephaestus/hephaestus_bot.log"
+try:
+    Path(default_log).parent.mkdir(parents=True, exist_ok=True)
+    log_file = default_log
+except Exception:
+    local_log_dir = Path(__file__).parents[2] / "logs" / "hephaestus"
+    local_log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = str(local_log_dir / "hephaestus_bot.log")
+
 logging.basicConfig(
-    filename="/var/log/hephaestus/hephaestus_bot.log",
-    level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
+    filename=log_file,
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s"
 )
 log = logging.getLogger(__name__)
 _lock = threading.Lock()

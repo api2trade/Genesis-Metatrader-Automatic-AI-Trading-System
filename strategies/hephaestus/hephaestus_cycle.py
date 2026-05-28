@@ -24,6 +24,8 @@ from pathlib import Path
 import requests, yaml
 
 CONFIG_PATH = Path(__file__).parent / "hephaestus_config.yaml"
+if not CONFIG_PATH.exists():
+    CONFIG_PATH = Path(__file__).parents[2] / "configs" / "hephaestus_config.yaml"
 with open(CONFIG_PATH) as f:
     CFG = yaml.safe_load(f)
 
@@ -37,9 +39,17 @@ if not CFG["strategy"].get("confirm_risk_acknowledged"):
 BRIDGE     = os.getenv("ARES_BRIDGE_URL", CFG["bridge"]["url"])
 TG_TOKEN   = os.getenv("TELEGRAM_BOT_TOKEN")
 TG_CHAT_ID = str(CFG["telegram"]["chat_id"])
-JOURNAL    = Path(CFG["journal"]["path"])
+# Resolve safe journal path (fallback to local logs/ if system dir not writable)
+default_journal = CFG["journal"]["path"]
+try:
+    Path(default_journal).parent.mkdir(parents=True, exist_ok=True)
+    JOURNAL = Path(default_journal)
+except Exception:
+    local_log_dir = Path(__file__).parents[2] / "logs" / "hephaestus"
+    local_log_dir.mkdir(parents=True, exist_ok=True)
+    JOURNAL = local_log_dir / "trade_journal.jsonl"
 STATE_FILE = Path("/var/log/hephaestus/grid_state.json")
-JOURNAL.parent.mkdir(parents=True, exist_ok=True)
+
 STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
 COMMENT    = CFG["strategy"]["comment"]
 
@@ -62,9 +72,20 @@ MAX_LOTS     = float(CFG["circuit_breakers"]["max_total_lots"])
 START_H      = int(CFG["sessions"]["allowed"][0]["start"])
 END_H        = int(CFG["sessions"]["allowed"][0]["end"])
 
+# Resolve safe log path (fallback to local logs/ if system dir not writable)
+default_log = "/var/log/hephaestus/hephaestus_cycle.log"
+try:
+    Path(default_log).parent.mkdir(parents=True, exist_ok=True)
+    log_file = default_log
+except Exception:
+    local_log_dir = Path(__file__).parents[2] / "logs" / "hephaestus"
+    local_log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = str(local_log_dir / "hephaestus_cycle.log")
+
 logging.basicConfig(
-    filename="/var/log/hephaestus/hephaestus_cycle.log",
-    level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
+    filename=log_file,
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s"
 )
 log = logging.getLogger(__name__)
 
@@ -336,7 +357,7 @@ def reset_grid(state: dict, positions: list, reason: str = "basket TP hit") -> d
     return state
 
 def _journal(p, pnl, result):
-    JOURNAL.parent.mkdir(parents=True,exist_ok=True)
+    
     with open(JOURNAL,"a") as f:
         f.write(json.dumps({
             "ticket":str(p.get("ticket")),"symbol":p.get("symbol"),
