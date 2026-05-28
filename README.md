@@ -111,11 +111,14 @@ cd Genesis-Metatrader-Automatic-AI-Trading-System
 # 2. Run setup wizard
 bash setup.sh
 
-# 3. Install as system services
+# 3. Install cron jobs, CLI shortcuts and log folders
 bash install.sh
 
-# 4. Check status
-systemctl status genesis-ares genesis-autonomous
+# 4. Verify cron schedule is active
+crontab -l
+
+# 5. Watch live logs
+tail -f /var/log/hermes/autonomous.log
 ```
 
 ---
@@ -320,7 +323,7 @@ For 24/7 autonomous trading, deploy on a Ubuntu 22.04 VPS:
 # Cost: ~€4–8/month (Hetzner, Contabo, DigitalOcean)
 
 bash setup.sh    # Configure credentials
-bash install.sh  # Install Python, venv, cron jobs, systemd services
+bash install.sh  # Install Python, venv, cron jobs, CLI shortcuts
 ```
 
 The installer sets up:
